@@ -1,10 +1,10 @@
-# Builds the Windows release from this repository and publishes it, with its SHA-256,
-# when a version tag (v0.30.0, v0.30.0-beta, ...) is pushed. The exe on Releases is
-# exactly what this workflow built from the tagged source.
+# Builds the Windows release from this repository and attaches it, with its SHA-256,
+# to a GitHub release when the release is published (tag v0.30.0, v0.30.0-beta, ...).
+# The exe on Releases is exactly what this workflow built from the tagged source.
 name: release
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
 permissions:
   contents: write
@@ -33,7 +33,7 @@ jobs:
         id: pack
         run: |
           $ver = (Select-String -Path da2lm\__init__.py -Pattern '__version__ = "(.+)"').Matches[0].Groups[1].Value
-          $tag = "${{ github.ref_name }}"
+          $tag = "${{ github.event.release.tag_name || github.ref_name }}"
           $suffix = if ($tag -like "*beta*") { "-beta" } else { "" }
           $zip = "da2lm-$ver$suffix-win64.zip"
           Compress-Archive -Path "dist\DA2 Loader" -DestinationPath $zip
@@ -47,11 +47,11 @@ jobs:
           path: |
             ${{ steps.pack.outputs.zip }}
             ${{ steps.pack.outputs.zip }}.sha256
-      - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Attach to the release
+        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $pre = if ("${{ github.ref_name }}" -like "*beta*") { "--prerelease" } else { "" }
-          $notes = "Built by GitHub Actions from tag ${{ github.ref_name }} (commit ${{ github.sha }}).`n`nSHA-256 of ${{ steps.pack.outputs.zip }}:`n``${{ steps.pack.outputs.hash }}```n`nSee GUIDE.md inside the zip to get started. Back up your override folder before the first run."
-          gh release create "${{ github.ref_name }}" "${{ steps.pack.outputs.zip }}" "${{ steps.pack.outputs.zip }}.sha256" --title "da2lm ${{ github.ref_name }}" --notes $notes $pre
+          gh release upload "${{ github.event.release.tag_name }}" "${{ steps.pack.outputs.zip }}" "${{ steps.pack.outputs.zip }}.sha256" --clobber
+          $notes = "Built by GitHub Actions from tag ${{ github.event.release.tag_name }} (commit ${{ github.sha }}).`n`nSHA-256 of ${{ steps.pack.outputs.zip }}:`n``${{ steps.pack.outputs.hash }}```n`nSee GUIDE.md inside the zip to get started. Back up your override folder before the first run."
+          gh release edit "${{ github.event.release.tag_name }}" --notes $notes
