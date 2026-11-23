@@ -1,0 +1,28 @@
+da2lm - Dragon Age II mod loader
+Copyright (c) 2026 Nacho (github.com/ignaciojcbo-bit). All rights reserved.
+
+You may download this software, read its source code, build it from source and use it for
+personal, non-commercial purposes.
+
+You may NOT, without prior written permission from the author:
+  - redistribute this software or builds of it, in whole or in part (including re-uploading it
+    to other sites);
+  - publish modified versions of it;
+  - include its code in other projects.
+
+To ask for permission, open an issue in this repository or contact the author on Nexus Mods.
+
+Contributions (issues and pull requests) are welcome. By submitting a contribution you agree
+that the author may use it under these terms.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE. BACK UP YOUR
+FILES BEFORE USE.
+
+Third-party material:
+  - Cinzel font (da2lm/assets/Cinzel.ttf): SIL Open Font License 1.1, see
+    da2lm/assets/Cinzel-OFL.txt.
+  - Dragon Age is a trademark of Electronic Arts Inc. This is an unofficial fan tool, not
+    affiliated with or endorsed by EA or BioWare.

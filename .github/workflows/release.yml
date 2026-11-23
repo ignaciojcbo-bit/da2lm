@@ -1,0 +1,57 @@
+# Builds the Windows release from this repository and publishes it, with its SHA-256,
+# when a version tag (v0.30.0, v0.30.0-beta, ...) is pushed. The exe on Releases is
+# exactly what this workflow built from the tagged source.
+name: release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: |
+          python -m pip install pytest
+          python -m pytest -q tests
+      - name: Build exe
+        run: |
+          python -m pip install pyinstaller PySide6-Essentials
+          python -m PyInstaller --noconfirm --clean --windowed --onedir --name "DA2 Loader" `
+            --icon packaging\da2lm.ico `
+            --add-data "da2lm\assets;da2lm\assets" `
+            --exclude-module tkinter --exclude-module unittest --exclude-module pytest `
+            packaging\entry.py
+          Copy-Item GUIDE.md, README.md, LICENSE "dist\DA2 Loader\"
+      - name: Zip and hash
+        id: pack
+        run: |
+          $ver = (Select-String -Path da2lm\__init__.py -Pattern '__version__ = "(.+)"').Matches[0].Groups[1].Value
+          $tag = "${{ github.ref_name }}"
+          $suffix = if ($tag -like "*beta*") { "-beta" } else { "" }
+          $zip = "da2lm-$ver$suffix-win64.zip"
+          Compress-Archive -Path "dist\DA2 Loader" -DestinationPath $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  $zip" | Out-File -Encoding ascii "$zip.sha256"
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+          "hash=$hash" >> $env:GITHUB_OUTPUT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: da2lm-win64
+          path: |
+            ${{ steps.pack.outputs.zip }}
+            ${{ steps.pack.outputs.zip }}.sha256
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $pre = if ("${{ github.ref_name }}" -like "*beta*") { "--prerelease" } else { "" }
+          $notes = "Built by GitHub Actions from tag ${{ github.ref_name }} (commit ${{ github.sha }}).`n`nSHA-256 of ${{ steps.pack.outputs.zip }}:`n``${{ steps.pack.outputs.hash }}```n`nSee GUIDE.md inside the zip to get started. Back up your override folder before the first run."
+          gh release create "${{ github.ref_name }}" "${{ steps.pack.outputs.zip }}" "${{ steps.pack.outputs.zip }}.sha256" --title "da2lm ${{ github.ref_name }}" --notes $notes $pre

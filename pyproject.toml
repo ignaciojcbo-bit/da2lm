@@ -1,0 +1,19 @@
+[project]
+name = "da2lm"
+version = "0.30.0"
+description = "DA2 launcher, phase 1: ERF reader and override conflict indexer"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+da2lm = "da2lm.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["da2lm"]
+
+[tool.setuptools.package-data]
+da2lm = ["assets/*"]
